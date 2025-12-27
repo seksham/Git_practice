@@ -1,1 +1,1 @@
-Version 2 - Added feature A
+Version 3 - Added feature B
