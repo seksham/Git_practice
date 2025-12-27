@@ -6,3 +6,4 @@ This is my shopping list
 5. Yogurt
 6. Cheese
 7. Coffee
+9. Honey
