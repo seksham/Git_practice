@@ -1,1 +1,1 @@
-Version 3 - Added feature B
+Version 4 - BUG INTRODUCED
