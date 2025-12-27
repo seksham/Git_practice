@@ -42,8 +42,8 @@ CURRENT PROGRESS:
 - Module 3: Merging (merge, conflicts) ✅ DONE
 - Module 4: Undoing Changes (reset, revert, restore) ✅ DONE
 - Module 5: Rewriting History (amend, rebase -i, squash) ✅ DONE
-- Module 6: Advanced (cherry-pick, stash, reflog, bisect) 🔄 IN PROGRESS
-- Module 7: Collaboration Workflows ⏳ PENDING
+- Module 6: Advanced (cherry-pick, stash, reflog, bisect) ✅ DONE
+- Module 7: Collaboration Workflows ✅ DONE
 
 REPOSITORY SETUP:
 - Path: /Users/sakshambhayana/saksham/Git_practice
@@ -64,7 +64,7 @@ Copy this to quickly resume:
 ```
 I'm learning Git with you. Please read the GIT_MASTERCLASS.md file in my workspace
 at /Users/sakshambhayana/saksham/Git_practice/ - it contains our progress and
-instructions. Continue teaching me from where we left off (Module 6: Advanced Commands).
+instructions. Continue teaching me from where we left off (Module 7 Complete - Advanced Topics).
 Remember to be structured, explain before running commands, use visual diagrams,
 and ask me questions to test understanding.
 ```
@@ -73,7 +73,7 @@ and ask me questions to test understanding.
 
 > **Created:** December 27, 2025
 > **Purpose:** Complete Git learning reference with LLM context for continuation
-> **Status:** In Progress - Currently at Module 6
+> **Status:** Complete - All Core Modules Done!
 
 ---
 
@@ -87,8 +87,8 @@ and ask me questions to test understanding.
 | 3 | Merging | ✅ Complete |
 | 4 | Undoing Changes (restore, reset, revert) | ✅ Complete |
 | 5 | Rewriting History (amend, rebase -i, squash) | ✅ Complete |
-| 6 | Advanced (cherry-pick, stash, reflog, bisect) | 🔄 In Progress |
-| 7 | Collaboration (fetch, pull, push workflows) | ⏳ Pending |
+| 6 | Advanced (cherry-pick, stash, reflog, bisect) | ✅ Complete |
+| 7 | Collaboration (fetch, pull, push, PRs) | ✅ Complete |
 
 ---
 
@@ -810,12 +810,394 @@ squash ghi9012 Another fix
 ---
 
 # 📘 MODULE 6: ADVANCED COMMANDS
-*🔄 In Progress...*
+
+## 6.1 `git cherry-pick` - Copy Specific Commits
+
+Cherry-pick copies a specific commit from one branch to another.
+
+### When to Use:
+- Apply a hotfix from feature branch to master
+- Copy specific changes without merging entire branch
+- Port commits between long-running branches
+
+### Syntax:
+
+```bash
+git cherry-pick <commit-hash>           # Copy one commit
+git cherry-pick <hash1> <hash2>         # Copy multiple commits
+git cherry-pick A..B                    # Copy range (exclusive of A)
+git cherry-pick --no-commit <hash>      # Apply changes without committing
+git cherry-pick --abort                 # Cancel in case of conflicts
+git cherry-pick --continue              # Continue after resolving conflicts
+```
+
+### Visual:
+
+```
+BEFORE cherry-pick:
+master:    A ── B ── C
+                 \
+feature:          D ── E ── F (want to copy E to master)
+
+AFTER git cherry-pick E:
+master:    A ── B ── C ── E' (copy of E)
+                 \
+feature:          D ── E ── F
+```
 
 ---
 
-# 📘 MODULE 7: COLLABORATION
-*Coming soon...*
+## 6.2 `git stash` - Save Work-in-Progress
+
+Stash temporarily saves uncommitted changes so you can switch branches.
+
+### Syntax:
+
+```bash
+git stash                        # Stash tracked file changes
+git stash -u                     # Include untracked files
+git stash -a                     # Include ignored files too
+git stash save "message"         # Stash with description
+git stash push -m "message"      # Modern syntax
+
+git stash list                   # Show all stashes
+git stash show                   # Show latest stash changes
+git stash show -p                # Show as patch (diff)
+git stash show stash@{2}         # Show specific stash
+
+git stash pop                    # Apply latest & remove from stash
+git stash apply                  # Apply latest & keep in stash
+git stash pop stash@{2}          # Apply specific stash
+
+git stash drop                   # Delete latest stash
+git stash drop stash@{2}         # Delete specific stash
+git stash clear                  # Delete ALL stashes ⚠️
+```
+
+### Workflow:
+
+```
+SCENARIO: Working on feature, urgent bug comes in
+
+$ git status
+  modified: feature.txt
+
+$ git stash -m "WIP: feature work"
+  Saved working directory
+
+$ git switch main
+$ # fix bug, commit, push
+
+$ git switch feature-branch
+$ git stash pop
+  # Your changes are back!
+```
+
+---
+
+## 6.3 `git reflog` - Recovery Safety Net
+
+Reflog records every time HEAD changes. It's your "undo history" for Git.
+
+### What it tracks:
+- Commits, resets, rebases
+- Branch switches
+- Cherry-picks, merges
+- Any HEAD movement
+
+### Syntax:
+
+```bash
+git reflog                       # Show full reflog
+git reflog -n 10                 # Last 10 entries
+git reflog show master           # Reflog for specific branch
+```
+
+### Recovering Lost Commits:
+
+```bash
+# SCENARIO: Accidentally ran git reset --hard HEAD~3
+
+$ git reflog
+# Find the commit hash BEFORE the reset
+
+$ git reset --hard <hash>
+# OR
+$ git cherry-pick <hash>
+# OR  
+$ git branch recovery <hash>
+```
+
+### Visual:
+
+```
+AFTER git reset --hard HEAD~3:
+
+"Lost" commits:  X ── Y ── Z  (orphaned, but still in reflog!)
+                 ↑
+Current HEAD: A ── B ── C
+
+RECOVERY:
+$ git reflog
+abc1234 HEAD@{0}: reset: moving to HEAD~3
+xyz9876 HEAD@{1}: commit: Z (this is what we want!)
+
+$ git reset --hard xyz9876
+# Commits recovered!
+```
+
+### ⚠️ Reflog Limits:
+- Entries expire after **90 days** (default)
+- Only exists locally (not pushed)
+- `git gc` may clean orphaned objects
+
+---
+
+## 6.4 `git bisect` - Binary Search for Bugs
+
+Bisect finds which commit introduced a bug using binary search.
+
+### How it Works:
+
+```
+1000 commits to search?
+Binary search: log₂(1000) ≈ 10 tests only!
+
+[GOOD] ─── ? ─── ? ─── ? ─── ? ─── [BAD]
+                  ↓
+            Test middle commit
+            Good? Search right half
+            Bad?  Search left half
+```
+
+### Syntax:
+
+```bash
+git bisect start                 # Start session
+git bisect bad                   # Mark current as bad
+git bisect bad <commit>          # Mark specific commit as bad
+git bisect good <commit>         # Mark known good commit
+
+# Git checks out middle commit, test it, then:
+git bisect good                  # If this version works
+git bisect bad                   # If this version has the bug
+git bisect skip                  # Can't test this commit
+
+git bisect reset                 # End session, return to HEAD
+git bisect log                   # Show bisect history
+
+# Automated bisect with test script:
+git bisect run ./test.sh         # Script returns 0=good, 1=bad
+```
+
+### Complete Workflow:
+
+```bash
+$ git bisect start
+$ git bisect bad HEAD            # Current version has bug
+$ git bisect good v1.0           # v1.0 was working
+
+# Git checks out middle commit
+Bisecting: 15 revisions left (roughly 4 steps)
+
+$ ./run-tests.sh                 # Test this version
+# If broken:
+$ git bisect bad
+# If working:
+$ git bisect good
+
+# Repeat until:
+abc1234 is the first bad commit
+commit abc1234
+Author: ...
+    Refactor login module    ← THE CULPRIT!
+
+$ git bisect reset               # Done, back to original HEAD
+```
+
+---
+
+# 📘 MODULE 7: COLLABORATION WORKFLOWS
+
+## 7.1 Local vs Remote Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         REMOTE (GitHub)                         │
+│         origin/master: [A]───[B]───[C]───[D]                    │
+└─────────────────────────────────────────────────────────────────┘
+                              ↑↓
+                    fetch ↓   ↑ push
+                              ↑↓
+┌─────────────────────────────────────────────────────────────────┐
+│                         LOCAL (Your Machine)                    │
+│  origin/master (tracking): [A]───[B]───[C]───[D]                │
+│  master (your work):       [A]───[B]───[C]───[D]───[E]───[F]    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## 7.2 Remote Commands
+
+```bash
+git remote -v                    # List remotes with URLs
+git remote add origin <url>      # Add a remote
+git remote add upstream <url>    # Add upstream (for forks)
+git remote remove origin         # Remove a remote
+git remote set-url origin <url>  # Change remote URL
+git remote rename origin new     # Rename a remote
+```
+
+## 7.3 `git fetch` - Download Without Merging
+
+Fetch downloads commits but doesn't change your working files. Safe to run anytime!
+
+```bash
+git fetch origin                 # Fetch all branches from origin
+git fetch origin master          # Fetch specific branch
+git fetch --all                  # Fetch from all remotes
+git fetch --prune                # Remove deleted remote branches
+```
+
+### After Fetch:
+
+```bash
+git log master..origin/master    # See what's new on remote
+git log origin/master..master    # See what you have locally
+git diff master origin/master    # Compare differences
+```
+
+## 7.4 `git pull` - Fetch + Merge
+
+```bash
+git pull                         # Fetch + merge current branch
+git pull origin master           # Pull specific branch
+git pull --rebase                # Fetch + rebase (linear history)
+git pull --ff-only               # Only if fast-forward possible
+```
+
+### Pull vs Pull --rebase:
+
+```
+PULL (merge):
+Remote:  [A]───[B]───[X]
+Local:   [A]───[B]───[Y]
+Result:  [A]───[B]───[X]───[M]  ← merge commit
+              └───[Y]───┘
+
+PULL --REBASE:
+Remote:  [A]───[B]───[X]
+Local:   [A]───[B]───[Y]
+Result:  [A]───[B]───[X]───[Y']  ← linear, Y rebased
+```
+
+## 7.5 `git push` - Upload Commits
+
+```bash
+git push                         # Push to upstream
+git push origin master           # Push specific branch
+git push -u origin feature       # Push + set upstream tracking
+git push --all                   # Push all branches
+git push --tags                  # Push all tags
+```
+
+### Push Rejection:
+
+```
+ERROR: Updates were rejected because the remote contains work that you do not have locally.
+
+SOLUTION:
+git pull --rebase                # Get remote changes first
+git push                         # Now push
+```
+
+## 7.6 Force Push ⚠️
+
+```bash
+git push --force                 # Overwrite remote history ⚠️
+git push --force-with-lease      # Safer: fails if remote changed
+git push -f origin feature       # Force push specific branch
+```
+
+### ⚠️ Force Push Rules:
+
+```
+✅ OK to force push:
+   • Your own feature branches (after rebase/amend)
+   • Branches ONLY you work on
+
+❌ NEVER force push:
+   • main / master
+   • develop / staging
+   • Any shared branch
+
+💡 After rebase:
+   • Your feature branch NEEDS force push
+   • That's expected and safe (it's YOUR branch)
+```
+
+## 7.7 Fork & Pull Request Workflow
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  FORK & PR WORKFLOW                                             │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. FORK the original repo (creates YOUR copy on GitHub)        │
+│     [Original Repo] ─── Fork ───> [Your Fork]                   │
+│      (upstream)                    (origin)                     │
+│                                                                 │
+│  2. CLONE your fork                                             │
+│     git clone git@github.com:YOU/repo.git                       │
+│     git remote add upstream <original-repo-url>                 │
+│                                                                 │
+│  3. Create FEATURE BRANCH                                       │
+│     git checkout -b feature-awesome                             │
+│                                                                 │
+│  4. Make changes, commit, PUSH to YOUR fork                     │
+│     git push origin feature-awesome                             │
+│                                                                 │
+│  5. Create PULL REQUEST on GitHub                               │
+│     [Your Fork:feature-awesome] ──PR──> [Original:main]         │
+│                                                                 │
+│  6. Code review, discussion, more commits if needed             │
+│                                                                 │
+│  7. Maintainer MERGES your PR 🎉                                │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Keep Fork Updated:
+
+```bash
+git fetch upstream               # Get upstream changes
+git checkout main
+git merge upstream/main          # Merge upstream into your main
+git push origin main             # Update your fork
+```
+
+## 7.8 Force Push After Rebase — PR Impact
+
+When you force push a rebased feature branch:
+
+| Aspect | What Happens |
+|--------|--------------|
+| PR stays open | Same PR number, updated commits |
+| Old commits replaced | [X,Y] → [X',Y'] |
+| Review comments | May become "outdated" |
+| CI/CD | Re-runs on new commits |
+| Teammates on same branch | Must `git fetch && git reset --hard origin/branch` |
+
+### ⚠️ If Teammate Pulls After Your Force Push:
+
+```
+DISASTER: They get duplicate commits + conflicts!
+
+SOLUTION for teammate:
+git fetch origin
+git reset --hard origin/feature-branch
+```
+
+**Rule: Communicate before force pushing shared branches!**
 
 ---
 
@@ -899,5 +1281,23 @@ git blame shopping.txt
 
 ---
 
-> **Last Updated:** December 27, 2025  
-> **Progress:** Module 5 (Rewriting History) complete, Module 6 in progress
+> **Last Updated:** December 27, 2025
+> **Progress:** ✅ ALL MODULES COMPLETE! (Modules 0-7)
+
+---
+
+# 🏆 TOPICS MASTERED
+
+| Topic | Commands Learned |
+|-------|------------------|
+| History | `log`, `show`, `diff`, `blame` |
+| Branching | `branch`, `switch`, `checkout` |
+| Merging | `merge`, conflict resolution |
+| Undoing | `restore`, `reset`, `revert` |
+| Rewriting | `commit --amend`, `rebase -i` |
+| Advanced | `cherry-pick`, `stash`, `reflog`, `bisect` |
+| Collaboration | `fetch`, `pull`, `push`, force push, PRs |
+
+---
+
+# 🎓 GIT EXPERTISE LEVEL: ADVANCED ⭐⭐⭐⭐⭐
