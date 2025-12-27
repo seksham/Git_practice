@@ -40,9 +40,9 @@ CURRENT PROGRESS:
 - Module 1: Viewing History (log, show, diff, blame) ✅ DONE
 - Module 2: Branching (branch, checkout, switch, detached HEAD) ✅ DONE
 - Module 3: Merging (merge, conflicts) ✅ DONE
-- Module 4: Undoing Changes (reset, revert, restore) 🔄 NEXT UP
-- Module 5: Rewriting History (amend, rebase -i, squash) ⏳ PENDING
-- Module 6: Advanced (cherry-pick, stash, reflog, bisect) ⏳ PENDING
+- Module 4: Undoing Changes (reset, revert, restore) ✅ DONE
+- Module 5: Rewriting History (amend, rebase -i, squash) ✅ DONE
+- Module 6: Advanced (cherry-pick, stash, reflog, bisect) 🔄 IN PROGRESS
 - Module 7: Collaboration Workflows ⏳ PENDING
 
 REPOSITORY SETUP:
@@ -53,20 +53,8 @@ REPOSITORY SETUP:
 - SSH config alias: github-seksham
 
 FILES IN REPO:
-- README.md (project readme)
-- shopping.txt (practice file with items list)
-- fruits.txt (practice file)
-- vegetables.txt (practice file)
+- README.md, shopping.txt, fruits.txt, vegetables.txt, snacks.txt
 - GIT_MASTERCLASS.md (this file - learning reference)
-
-BRANCHES:
-- master (main branch)
-- feature-vegetables (merged)
-- feature-dairy (merged)
-
-HOW TO CONTINUE:
-Say "Let's continue with Git masterclass from Module X" 
-or "Continue from where we left off"
 ```
 
 ### 🔄 Quick Resume Prompt
@@ -74,18 +62,18 @@ or "Continue from where we left off"
 Copy this to quickly resume:
 
 ```
-I'm learning Git with you. Please read the GIT_MASTERCLASS.md file in my workspace 
-at /Users/sakshambhayana/saksham/Git_practice/ - it contains our progress and 
-instructions. Continue teaching me from where we left off (Module 4: Undoing Changes). 
-Remember to be structured, explain before running commands, use visual diagrams, 
+I'm learning Git with you. Please read the GIT_MASTERCLASS.md file in my workspace
+at /Users/sakshambhayana/saksham/Git_practice/ - it contains our progress and
+instructions. Continue teaching me from where we left off (Module 6: Advanced Commands).
+Remember to be structured, explain before running commands, use visual diagrams,
 and ask me questions to test understanding.
 ```
 
 ---
 
-> **Created:** December 27, 2025  
-> **Purpose:** Complete Git learning reference with LLM context for continuation  
-> **Status:** In Progress - Currently at Module 4
+> **Created:** December 27, 2025
+> **Purpose:** Complete Git learning reference with LLM context for continuation
+> **Status:** In Progress - Currently at Module 6
 
 ---
 
@@ -97,9 +85,9 @@ and ask me questions to test understanding.
 | 1 | Viewing History (log, show, diff, blame) | ✅ Complete |
 | 2 | Branching & Switching | ✅ Complete |
 | 3 | Merging | ✅ Complete |
-| 4 | Undoing Changes (restore, reset, revert) | 🔄 In Progress |
-| 5 | Rewriting History (amend, rebase, rebase -i, squash) | ⏳ Pending |
-| 6 | Advanced (cherry-pick, stash, reflog, bisect) | ⏳ Pending |
+| 4 | Undoing Changes (restore, reset, revert) | ✅ Complete |
+| 5 | Rewriting History (amend, rebase -i, squash) | ✅ Complete |
+| 6 | Advanced (cherry-pick, stash, reflog, bisect) | 🔄 In Progress |
 | 7 | Collaboration (fetch, pull, push workflows) | ⏳ Pending |
 
 ---
@@ -410,7 +398,7 @@ git blame -w filename.txt
 
 ```
 HEAD~1  or HEAD~   = 1 commit back
-HEAD~2             = 2 commits back  
+HEAD~2             = 2 commits back
 HEAD~3             = 3 commits back
 ```
 
@@ -689,7 +677,7 @@ git commit -m "Merge feature-dairy: resolved conflicts"
 # Keep your version (current branch)
 git checkout --ours filename.txt
 
-# Keep their version (merging branch)  
+# Keep their version (merging branch)
 git checkout --theirs filename.txt
 
 # Use a merge tool
@@ -699,17 +687,130 @@ git mergetool
 ---
 
 # 📘 MODULE 4: UNDOING CHANGES
-*Coming soon...*
+
+## 4.1 The Three Areas
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│    WORKING      │     │    STAGING      │     │   REPOSITORY    │
+│   DIRECTORY     │────►│     AREA        │────►│    (commits)    │
+│                 │ add │    (index)      │commit│                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+        │                       │                       │
+   git restore             git restore            git reset
+   (discard edits)         --staged               git revert
+```
+
+## 4.2 `git restore` - Discard Uncommitted Changes
+
+```bash
+git restore <file>                    # Discard changes in working directory
+git restore --staged <file>           # Unstage a file (keep changes)
+git restore --source=HEAD~1 <file>    # Restore file from specific commit
+```
+
+## 4.3 `git reset` - Move HEAD and Undo Commits
+
+```bash
+git reset --soft <commit>    # Undo commit, keep changes STAGED
+git reset --mixed <commit>   # Undo commit, keep changes UNSTAGED (default)
+git reset --hard <commit>    # Undo commit, DELETE all changes ⚠️
+```
+
+### The Three Modes:
+
+| Mode | HEAD | Staging | Working Dir | Use Case |
+|------|------|---------|-------------|----------|
+| --soft | Moves | Unchanged | Unchanged | Redo commit with same changes |
+| --mixed | Moves | Cleared | Unchanged | Edit before recommitting |
+| --hard | Moves | Cleared | Cleared | Completely discard changes ⚠️ |
+
+## 4.4 `git revert` - Safe Undo for Shared History
+
+```bash
+git revert <commit>           # Create new commit that undoes specified commit
+git revert HEAD               # Revert the last commit
+git revert --no-edit HEAD     # Revert without opening editor
+```
+
+### Reset vs Revert:
+
+| | Reset | Revert |
+|---|-------|--------|
+| History | Rewrites | Preserves |
+| Safe for pushed code | ❌ No | ✅ Yes |
+| Use when | Local commits only | Already pushed |
 
 ---
 
 # 📘 MODULE 5: REWRITING HISTORY
-*Coming soon...*
+
+## 5.1 `git commit --amend` - Fix the Last Commit
+
+```bash
+git commit --amend                    # Change message (opens editor)
+git commit --amend -m "New message"   # Change message directly
+git commit --amend --no-edit          # Add staged changes, keep message
+```
+
+⚠️ Only amend commits that haven't been pushed!
+
+## 5.2 `git rebase` - Move Commits to New Base
+
+```bash
+git rebase <target-branch>     # Replay current branch onto target
+git rebase -i <commit>         # Interactive rebase
+git rebase --abort             # Cancel rebase
+git rebase --continue          # Continue after resolving conflicts
+```
+
+### Rebase vs Merge:
+
+```
+MERGE: Preserves branch history (creates merge commit)
+    A ── B ── C ── F ── M
+               \      /
+                D ── E
+
+REBASE: Linear history (no merge commit)
+    A ── B ── C ── F ── D' ── E'
+```
+
+## 5.3 Interactive Rebase Commands
+
+```bash
+git rebase -i <commit>    # Opens editor with commit list
+```
+
+| Command | Short | What It Does |
+|---------|-------|--------------|
+| pick | p | Keep commit as-is |
+| reword | r | Keep commit, edit message |
+| edit | e | Stop at commit to make changes |
+| squash | s | Combine with previous commit (merge messages) |
+| fixup | f | Combine with previous (discard this message) |
+| drop | d | Delete commit entirely |
+
+### Squash Example:
+
+```
+# BEFORE (in editor):
+pick abc1234 Add feature
+pick def5678 Fix typo
+pick ghi9012 Another fix
+
+# CHANGE TO:
+pick abc1234 Add feature
+squash def5678 Fix typo
+squash ghi9012 Another fix
+
+# RESULT: One commit with all changes
+```
 
 ---
 
 # 📘 MODULE 6: ADVANCED COMMANDS
-*Coming soon...*
+*🔄 In Progress...*
 
 ---
 
@@ -799,4 +900,4 @@ git blame shopping.txt
 ---
 
 > **Last Updated:** December 27, 2025  
-> **Progress:** Module 3 (Merging) complete, Module 4 next
+> **Progress:** Module 5 (Rewriting History) complete, Module 6 in progress
