@@ -1,8 +1,91 @@
 # 🎓 GIT MASTERCLASS - Complete Reference Guide
 
+---
+
+## 🤖 LLM SESSION CONTEXT (For Continuing in New Sessions)
+
+> **IMPORTANT:** Copy this entire section when starting a new chat session to provide context.
+
+### 📋 Session Instructions for LLM
+
+```
+You are teaching me (Saksham) Git from basics to advanced level. Here are your instructions:
+
+TEACHING STYLE:
+1. Be STRUCTURED - Complete one module fully before moving to next
+2. EXPLAIN before EXECUTE - Always explain what a command does before running it
+3. Follow this pattern for each command:
+   - What it does
+   - Syntax & options
+   - When to use it
+   - Practical example with explanation
+4. Use VISUAL diagrams (ASCII art) to explain concepts
+5. ASK QUESTIONS periodically to test my understanding
+6. Keep UPDATING this markdown file as we progress
+
+WHAT I ALREADY KNOW:
+- Basic git workflow (add, commit, push, pull)
+- Have some experience but want EXPERT-level knowledge
+
+WHAT I WANT TO LEARN:
+- All advanced topics: reset, rebase, amend, restore, revert
+- Interactive rebase, squash commits
+- Cherry-pick, stash, reflog, bisect
+- Branching strategies
+- How to visualize git (graphs, log options)
+- When to use which command (practical scenarios)
+
+CURRENT PROGRESS:
+- Module 0: Remote Concepts ✅ DONE
+- Module 1: Viewing History (log, show, diff, blame) ✅ DONE
+- Module 2: Branching (branch, checkout, switch, detached HEAD) ✅ DONE
+- Module 3: Merging (merge, conflicts) ✅ DONE
+- Module 4: Undoing Changes (reset, revert, restore) 🔄 NEXT UP
+- Module 5: Rewriting History (amend, rebase -i, squash) ⏳ PENDING
+- Module 6: Advanced (cherry-pick, stash, reflog, bisect) ⏳ PENDING
+- Module 7: Collaboration Workflows ⏳ PENDING
+
+REPOSITORY SETUP:
+- Path: /Users/sakshambhayana/saksham/Git_practice
+- Remote: git@github-seksham:seksham/Git_practice.git
+- GitHub Username: seksham
+- Uses custom SSH key: ~/.ssh/id_seksham (for seksham account)
+- SSH config alias: github-seksham
+
+FILES IN REPO:
+- README.md (project readme)
+- shopping.txt (practice file with items list)
+- fruits.txt (practice file)
+- vegetables.txt (practice file)
+- GIT_MASTERCLASS.md (this file - learning reference)
+
+BRANCHES:
+- master (main branch)
+- feature-vegetables (merged)
+- feature-dairy (merged)
+
+HOW TO CONTINUE:
+Say "Let's continue with Git masterclass from Module X" 
+or "Continue from where we left off"
+```
+
+### 🔄 Quick Resume Prompt
+
+Copy this to quickly resume:
+
+```
+I'm learning Git with you. Please read the GIT_MASTERCLASS.md file in my workspace 
+at /Users/sakshambhayana/saksham/Git_practice/ - it contains our progress and 
+instructions. Continue teaching me from where we left off (Module 4: Undoing Changes). 
+Remember to be structured, explain before running commands, use visual diagrams, 
+and ask me questions to test understanding.
+```
+
+---
+
 > **Created:** December 27, 2025  
-> **Purpose:** Quick reference for Git commands and concepts  
-> **Status:** In Progress
+> **Purpose:** Complete Git learning reference with LLM context for continuation  
+> **Status:** In Progress - Currently at Module 4
 
 ---
 
@@ -12,9 +95,9 @@
 |--------|-------|--------|
 | 0 | Git Fundamentals & Remote Concepts | ✅ Complete |
 | 1 | Viewing History (log, show, diff, blame) | ✅ Complete |
-| 2 | Branching & Switching | 🔄 In Progress |
-| 3 | Merging | ⏳ Pending |
-| 4 | Undoing Changes (restore, reset, revert) | ⏳ Pending |
+| 2 | Branching & Switching | ✅ Complete |
+| 3 | Merging | ✅ Complete |
+| 4 | Undoing Changes (restore, reset, revert) | 🔄 In Progress |
 | 5 | Rewriting History (amend, rebase, rebase -i, squash) | ⏳ Pending |
 | 6 | Advanced (cherry-pick, stash, reflog, bisect) | ⏳ Pending |
 | 7 | Collaboration (fetch, pull, push workflows) | ⏳ Pending |
@@ -478,7 +561,140 @@ git checkout main -- filename.txt
 ---
 
 # 📘 MODULE 3: MERGING
-*Coming soon...*
+
+## 3.1 What is Merging?
+
+Merging combines the changes from one branch into another.
+
+```
+BEFORE MERGE:
+              feature
+                  │
+                  ▼
+    A ── B ── C ── D
+              ▲
+              │
+           master (HEAD)
+
+AFTER MERGE (git merge feature):
+              feature
+                  │
+                  ▼
+    A ── B ── C ── D
+              │     \
+              │      M (merge commit)
+              │     /
+              └────┘
+                   ▲
+                   │
+                master (HEAD)
+```
+
+## 3.2 Types of Merges
+
+### Fast-Forward Merge
+When there are no new commits on the base branch. No merge commit needed.
+
+```
+BEFORE:
+    A ── B ── C (master)
+               \
+                D ── E (feature)
+
+AFTER (fast-forward):
+    A ── B ── C ── D ── E (master, feature)
+```
+
+### 3-Way Merge
+When both branches have new commits. Creates a merge commit with 2 parents.
+
+```
+BEFORE:
+    A ── B ── C ── F (master)
+               \
+                D ── E (feature)
+
+AFTER:
+    A ── B ── C ── F ──── M (master) ← merge commit (2 parents: F and E)
+               \        /
+                D ── E ─┘ (feature)
+```
+
+## 3.3 `git merge` - Combine Branches
+
+```bash
+# Basic merge (merge feature into current branch)
+git checkout master
+git merge feature-branch
+
+# Merge with commit message
+git merge feature-branch -m "Merge feature into master"
+
+# No fast-forward (always create merge commit)
+git merge --no-ff feature-branch
+
+# Fast-forward only (fail if not possible)
+git merge --ff-only feature-branch
+
+# Abort merge in progress
+git merge --abort
+
+# Continue after resolving conflicts
+git add .
+git merge --continue
+# or just: git commit
+```
+
+## 3.4 Merge Conflicts
+
+Conflicts happen when the same lines are changed in both branches.
+
+### Conflict Markers:
+
+```
+<<<<<<< HEAD
+Your changes (current branch)
+=======
+Their changes (branch being merged)
+>>>>>>> feature-branch
+```
+
+### Resolving Conflicts:
+
+```bash
+# 1. See which files have conflicts
+git status
+
+# 2. Open conflicted file, you'll see:
+<<<<<<< HEAD
+5. Yogurt
+=======
+5. Cheese
+>>>>>>> feature-dairy
+
+# 3. Edit to resolve (keep one, both, or write new):
+5. Yogurt
+6. Cheese
+
+# 4. Stage the resolved file
+git add shopping.txt
+
+# 5. Complete the merge
+git commit -m "Merge feature-dairy: resolved conflicts"
+```
+
+### Resolution Options:
+
+```bash
+# Keep your version (current branch)
+git checkout --ours filename.txt
+
+# Keep their version (merging branch)  
+git checkout --theirs filename.txt
+
+# Use a merge tool
+git mergetool
+```
 
 ---
 
@@ -583,4 +799,4 @@ git blame shopping.txt
 ---
 
 > **Last Updated:** December 27, 2025  
-> **Progress:** Module 2 (Branching) in progress
+> **Progress:** Module 3 (Merging) complete, Module 4 next
