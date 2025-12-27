@@ -1,1 +1,1 @@
-Version 1 - All good
+Version 2 - Added feature A
