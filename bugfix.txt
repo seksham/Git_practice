@@ -1,0 +1,1 @@
+CRITICAL BUG FIX: Fixed null pointer
